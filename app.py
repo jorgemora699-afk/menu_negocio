@@ -26,13 +26,15 @@ def create_app():
         from blueprints.products import products_bp
         from blueprints.menu import menu_bp
         from blueprints.profile import profile_bp
+        from blueprints.uploads import uploads_bp
 
         app.register_blueprint(auth_bp, url_prefix="/api/auth")
         app.register_blueprint(categories_bp, url_prefix="/api/categories")
         app.register_blueprint(products_bp, url_prefix="/api/products")
         app.register_blueprint(menu_bp, url_prefix="/api/menu")
         app.register_blueprint(profile_bp, url_prefix="/api/profile")
-
+        app.register_blueprint(uploads_bp, url_prefix="/api/uploads")
+        
     return app
 
 if __name__ == "__main__":
