@@ -12,5 +12,6 @@ class Business(db.Model):
     tagline = db.Column(db.String(255))
     primary_color = db.Column(db.String(7), default="#222222")
     secondary_color = db.Column(db.String(7), default="#ffffff")
+    banner_url = db.Column(db.String(255))
 
     categories = db.relationship("Category", backref="business", lazy=True, cascade="all, delete")

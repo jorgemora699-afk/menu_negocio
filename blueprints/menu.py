@@ -17,6 +17,7 @@ def get_menu(slug):
         result.append({
             "id": cat.id,
             "name": cat.name,
+            "emoji": cat.emoji,
             "products": [{
                 "id": p.id,
                 "name": p.name,
