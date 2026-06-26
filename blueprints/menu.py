@@ -27,6 +27,12 @@ def get_menu(slug):
         })
 
     return jsonify({
-        "business": {"name": business.name, "logo_url": business.logo_url},
+        "business": {
+            "name": business.name,
+            "logo_url": business.logo_url,
+            "tagline": business.tagline,
+            "primary_color": business.primary_color,
+            "secondary_color": business.secondary_color
+        },
         "categories": result
     })
