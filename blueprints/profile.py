@@ -16,6 +16,7 @@ def get_profile():
         "slug": business.slug,
         "email": business.email,
         "logo_url": business.logo_url,
+        "banner_url": business.banner_url,
         "tagline": business.tagline,
         "primary_color": business.primary_color,
         "secondary_color": business.secondary_color
@@ -30,6 +31,7 @@ def update_profile():
 
     business.name = data.get("name", business.name)
     business.logo_url = data.get("logo_url", business.logo_url)
+    business.banner_url = data.get("banner_url", business.banner_url)
     business.tagline = data.get("tagline", business.tagline)
     business.primary_color = data.get("primary_color", business.primary_color)
     business.secondary_color = data.get("secondary_color", business.secondary_color)
