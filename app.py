@@ -21,6 +21,14 @@ def create_app():
         from models.product import Product
         db.create_all()
 
+        from blueprints.auth import auth_bp
+        from blueprints.categories import categories_bp
+        from blueprints.products import products_bp
+
+        app.register_blueprint(auth_bp, url_prefix="/api/auth")
+        app.register_blueprint(categories_bp, url_prefix="/api/categories")
+        app.register_blueprint(products_bp, url_prefix="/api/products")
+
     return app
 
 if __name__ == "__main__":
