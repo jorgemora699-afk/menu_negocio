@@ -32,8 +32,7 @@ def get_menu(slug):
             "name": business.name,
             "logo_url": business.logo_url,
             "tagline": business.tagline,
-            "primary_color": business.primary_color,
-            "secondary_color": business.secondary_color
+            "banner_url": business.banner_url
         },
         "categories": result
     })
