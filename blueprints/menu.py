@@ -18,6 +18,7 @@ def get_menu(slug):
             "id": cat.id,
             "name": cat.name,
             "emoji": cat.emoji,
+            "image_url": cat.image_url,
             "products": [{
                 "id": p.id,
                 "name": p.name,
