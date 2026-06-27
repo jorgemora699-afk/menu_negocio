@@ -17,9 +17,7 @@ def get_profile():
         "email": business.email,
         "logo_url": business.logo_url,
         "banner_url": business.banner_url,
-        "tagline": business.tagline,
-        "primary_color": business.primary_color,
-        "secondary_color": business.secondary_color
+        "tagline": business.tagline
     })
 
 @profile_bp.route("/", methods=["PUT"])
@@ -33,8 +31,6 @@ def update_profile():
     business.logo_url = data.get("logo_url", business.logo_url)
     business.banner_url = data.get("banner_url", business.banner_url)
     business.tagline = data.get("tagline", business.tagline)
-    business.primary_color = data.get("primary_color", business.primary_color)
-    business.secondary_color = data.get("secondary_color", business.secondary_color)
 
     db.session.commit()
 
