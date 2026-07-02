@@ -7,6 +7,17 @@ class Category(db.Model):
     name = db.Column(db.String(100), nullable=False)
     emoji = db.Column(db.String(10), default="🍽")
     image_url = db.Column(db.String(255))
-    business_id = db.Column(db.Integer, db.ForeignKey("businesses.id"), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
 
-    products = db.relationship("Product", backref="category", lazy=True, cascade="all, delete")
+    business_id = db.Column(
+        db.Integer,
+        db.ForeignKey("businesses.id"),
+        nullable=False
+    )
+
+    products = db.relationship(
+        "Product",
+        backref="category",
+        lazy=True,
+        cascade="all, delete"
+    )
