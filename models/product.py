@@ -10,5 +10,6 @@ class Product(db.Model):
     price = db.Column(Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(255))
     available = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
     
