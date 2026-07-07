@@ -5,6 +5,8 @@ from app import db
 
 profile_bp = Blueprint("profile", __name__)
 
+VALID_FONT_KEYS = {"editorial", "clasico", "moderno", "calido", "minimal"}
+
 @profile_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_profile():
@@ -17,7 +19,11 @@ def get_profile():
         "email": business.email,
         "logo_url": business.logo_url,
         "banner_url": business.banner_url,
-        "tagline": business.tagline
+        "tagline": business.tagline,
+        "accent_color": business.accent_color,
+        "background_color": business.background_color,
+        "text_color": business.text_color,
+        "font_key": business.font_key,
     })
 
 @profile_bp.route("/", methods=["PUT"])
@@ -31,6 +37,22 @@ def update_profile():
     business.logo_url = data.get("logo_url", business.logo_url)
     business.banner_url = data.get("banner_url", business.banner_url)
     business.tagline = data.get("tagline", business.tagline)
+
+    accent = data.get("accent_color")
+    if accent:
+        business.accent_color = accent
+
+    background = data.get("background_color")
+    if background:
+        business.background_color = background
+
+    text = data.get("text_color")
+    if text:
+        business.text_color = text
+
+    font_key = data.get("font_key")
+    if font_key and font_key in VALID_FONT_KEYS:
+        business.font_key = font_key
 
     db.session.commit()
 

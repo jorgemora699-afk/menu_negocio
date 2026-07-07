@@ -12,4 +12,9 @@ class Business(db.Model):
     tagline = db.Column(db.String(255))
     banner_url = db.Column(db.String(255))
 
+    accent_color = db.Column(db.String(7), default="#9c7a3c")
+    background_color = db.Column(db.String(7), default="#f7f4ee")
+    text_color = db.Column(db.String(7), default="#1b1812")
+    font_key = db.Column(db.String(20), default="editorial")
+
     categories = db.relationship("Category", backref="business", lazy=True, cascade="all, delete")
