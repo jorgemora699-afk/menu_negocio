@@ -9,11 +9,26 @@ menu_bp = Blueprint("menu", __name__)
 def get_menu(slug):
     business = Business.query.filter_by(slug=slug).first_or_404()
 
-    categories = Category.query.filter_by(business_id=business.id).all()
+    # Categorías ordenadas
+    categories = (
+        Category.query
+        .filter_by(business_id=business.id)
+        .order_by(Category.display_order.asc())
+        .all()
+    )
 
     result = []
+
     for cat in categories:
-        products = Product.query.filter_by(category_id=cat.id, available=True).all()
+
+        # Productos ordenados
+        products = (
+            Product.query
+            .filter_by(category_id=cat.id, available=True)
+            .order_by(Product.display_order.asc())
+            .all()
+        )
+
         result.append({
             "id": cat.id,
             "name": cat.name,
