@@ -48,7 +48,11 @@ def get_menu(slug):
             "name": business.name,
             "logo_url": business.logo_url,
             "tagline": business.tagline,
-            "banner_url": business.banner_url
+            "banner_url": business.banner_url,
+            "accent_color": business.accent_color,
+            "background_color": business.background_color,
+            "text_color": business.text_color,
+            "font_key": business.font_key
         },
         "categories": result
     })
