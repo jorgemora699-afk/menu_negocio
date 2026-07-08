@@ -61,12 +61,18 @@ def update_product(id):
     business_id = int(get_jwt_identity())
     product = Product.query.join(Category).filter(Product.id == id, Category.business_id == business_id).first_or_404()
     data = request.get_json()
+
+    new_category_id = data.get("category_id", product.category_id)
+    if new_category_id != product.category_id:
+        # valida que la nueva categoría también sea del mismo negocio
+        Category.query.filter_by(id=new_category_id, business_id=business_id).first_or_404()
+
     product.name = data.get("name", product.name)
     product.description = data.get("description", product.description)
     product.price = data.get("price", product.price)
     product.image_url = data.get("image_url", product.image_url)
     product.available = data.get("available", product.available)
-    product.category_id = data.get("category_id", product.category_id)
+    product.category_id = new_category_id
     db.session.commit()
     return jsonify({"id": product.id, "name": product.name})
 

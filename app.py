@@ -10,6 +10,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB máximo por request
 
     CORS(app)
     db.init_app(app)
