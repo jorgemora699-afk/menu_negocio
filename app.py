@@ -19,6 +19,7 @@ def create_app():
         from models.business import Business
         from models.category import Category
         from models.product import Product
+        from models.invite_code import InviteCode 
         db.create_all()
 
         from blueprints.auth import auth_bp
@@ -27,6 +28,8 @@ def create_app():
         from blueprints.menu import menu_bp
         from blueprints.profile import profile_bp
         from blueprints.uploads import uploads_bp
+        from blueprints.superadmin import superadmin_bp
+        
 
         app.register_blueprint(auth_bp, url_prefix="/api/auth")
         app.register_blueprint(categories_bp, url_prefix="/api/categories")
@@ -34,6 +37,7 @@ def create_app():
         app.register_blueprint(menu_bp, url_prefix="/api/menu")
         app.register_blueprint(profile_bp, url_prefix="/api/profile")
         app.register_blueprint(uploads_bp, url_prefix="/api/uploads")
+        app.register_blueprint(superadmin_bp, url_prefix="/api/superadmin")
         
     return app
 
