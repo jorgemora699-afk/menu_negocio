@@ -1,7 +1,9 @@
 import os
 import secrets
 from flask import Blueprint, request, jsonify, abort
+from werkzeug.security import generate_password_hash
 from models.invite_code import InviteCode
+from models.business import Business
 from app import db
 
 superadmin_bp = Blueprint("superadmin", __name__)
@@ -58,3 +60,58 @@ def revoke_invite_code(code_id):
     db.session.commit()
 
     return jsonify(invite.to_dict()), 200
+
+
+# ---------------------------------------------------------------------------
+# Negocios: listar, restablecer contraseña manualmente, asignar color de fondo
+# ---------------------------------------------------------------------------
+
+def business_to_dict(b):
+    return {
+        "id": b.id,
+        "name": b.name,
+        "slug": b.slug,
+        "email": b.email,
+    }
+
+
+@superadmin_bp.route("/businesses", methods=["GET"])
+def list_businesses():
+    require_superadmin()
+
+    search = request.args.get("q", "").strip().lower()
+
+    query = Business.query
+    if search:
+        query = query.filter(
+            db.or_(
+                Business.name.ilike(f"%{search}%"),
+                Business.email.ilike(f"%{search}%"),
+                Business.slug.ilike(f"%{search}%"),
+            )
+        )
+
+    businesses = query.order_by(Business.name.asc()).all()
+    return jsonify([business_to_dict(b) for b in businesses]), 200
+
+
+@superadmin_bp.route("/businesses/<int:business_id>/reset-password", methods=["POST"])
+def reset_business_password(business_id):
+    require_superadmin()
+
+    business = Business.query.get_or_404(business_id)
+
+    # Contraseña temporal fácil de dictar/copiar por WhatsApp (10 caracteres, sin ambigüedades)
+    alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # sin O/0, I/1/L para evitar confusiones
+    new_password = "".join(secrets.choice(alphabet) for _ in range(10))
+
+    business.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+
+    # La contraseña en texto plano solo se devuelve UNA VEZ, aquí.
+    # No queda guardada en ningún lado — cópiala y mándasela al negocio ya mismo.
+    return jsonify({
+        "id": business.id,
+        "email": business.email,
+        "new_password": new_password
+    }), 200
