@@ -56,4 +56,12 @@ def login():
         return jsonify({"error": "Credenciales incorrectas"}), 401
 
     token = create_access_token(identity=str(business.id))
-    return jsonify({"token": token, "business": {"id": business.id, "name": business.name, "slug": business.slug}}), 200
+    return jsonify({
+        "token": token,
+        "business": {
+            "id": business.id,
+            "name": business.name,
+            "slug": business.slug,
+            "recipes_enabled": business.recipes_enabled
+        }
+    }), 200
