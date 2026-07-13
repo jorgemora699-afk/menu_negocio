@@ -16,5 +16,7 @@ class Business(db.Model):
     background_color = db.Column(db.String(7), default="#f7f4ee")
     text_color = db.Column(db.String(7), default="#1b1812")
     font_key = db.Column(db.String(20), default="editorial")
+    recipes_enabled = db.Column(db.Boolean, default=False)
+    recipe_pin = db.Column(db.String(4))
 
     categories = db.relationship("Category", backref="business", lazy=True, cascade="all, delete")

@@ -24,6 +24,7 @@ def get_profile():
         "background_color": business.background_color,
         "text_color": business.text_color,
         "font_key": business.font_key,
+        "recipes_enabled": business.recipes_enabled,
     })
 
 @profile_bp.route("/", methods=["PUT"])
