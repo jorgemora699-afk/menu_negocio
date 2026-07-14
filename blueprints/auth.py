@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from models.business import Business
 from models.invite_code import InviteCode
 from app import db
@@ -65,3 +65,28 @@ def login():
             "recipes_enabled": business.recipes_enabled
         }
     }), 200
+
+
+@auth_bp.route("/change-password", methods=["PUT"])
+@jwt_required()
+def change_password():
+    business_id = int(get_jwt_identity())
+    business = Business.query.get_or_404(business_id)
+    data = request.get_json()
+
+    current_password = data.get("current_password", "")
+    new_password = data.get("new_password", "")
+
+    if not check_password_hash(business.password_hash, current_password):
+        return jsonify({"error": "La contraseña actual es incorrecta"}), 401
+
+    if len(new_password) < 6:
+        return jsonify({"error": "La nueva contraseña debe tener al menos 6 caracteres"}), 400
+
+    if check_password_hash(business.password_hash, new_password):
+        return jsonify({"error": "La nueva contraseña debe ser distinta a la actual"}), 400
+
+    business.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
