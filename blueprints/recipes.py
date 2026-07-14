@@ -99,3 +99,26 @@ def save_recipe(product_id):
     db.session.commit()
 
     return jsonify({"message": "Receta guardada correctamente"})
+
+@recipes_bp.route("/verify-pin", methods=["POST"])
+@jwt_required()
+def verify_recipe_pin():
+    business_id = int(get_jwt_identity())
+    business = Business.query.get_or_404(business_id)
+
+    data = request.get_json()
+    pin = str(data.get("pin", "")).strip()
+
+    if not business.recipe_pin:
+        return jsonify({
+            "error": "Este negocio no tiene un PIN configurado."
+        }), 400
+
+    if pin != business.recipe_pin:
+        return jsonify({
+            "error": "PIN incorrecto"
+        }), 403
+
+    return jsonify({
+        "message": "PIN válido"
+    }), 200
