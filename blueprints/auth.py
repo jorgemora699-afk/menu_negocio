@@ -90,3 +90,29 @@ def change_password():
     db.session.commit()
 
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+
+@auth_bp.route("/change-pin", methods=["PUT"])
+@jwt_required()
+def change_pin():
+    business_id = int(get_jwt_identity())
+    business = Business.query.get_or_404(business_id)
+
+    data = request.get_json()
+
+    current_pin = str(data.get("current_pin", "")).strip()
+    new_pin = str(data.get("new_pin", "")).strip()
+
+    if business.recipe_pin != current_pin:
+        return jsonify({"error": "El PIN actual es incorrecto"}), 401
+
+    if len(new_pin) != 4 or not new_pin.isdigit():
+        return jsonify({"error": "El nuevo PIN debe tener exactamente 4 dígitos"}), 400
+
+    if current_pin == new_pin:
+        return jsonify({"error": "El nuevo PIN debe ser diferente al actual"}), 400
+
+    business.recipe_pin = new_pin
+
+    db.session.commit()
+
+    return jsonify({"message": "PIN actualizado correctamente"}), 200
