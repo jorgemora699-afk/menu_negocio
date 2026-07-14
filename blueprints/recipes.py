@@ -60,6 +60,7 @@ def get_recipe(product_id):
     return jsonify({
         "product_id": product.id,
         "product_name": product.name,
+        "image_url": product.image_url,
         "ingredients": recipe.ingredients if recipe else "",
         "procedure": recipe.procedure if recipe else "",
         "has_recipe": recipe is not None
