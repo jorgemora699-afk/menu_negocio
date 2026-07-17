@@ -20,13 +20,19 @@ ALLOWED_MIMETYPES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
 def is_allowed_file(filename, mimetype):
     if "." not in filename:
         return False
+
     ext = filename.rsplit(".", 1)[1].lower()
-    return ext in ALLOWED_EXTENSIONS and mimetype in ALLOWED_MIMETYPES
+
+    return (
+        ext in ALLOWED_EXTENSIONS
+        and mimetype in ALLOWED_MIMETYPES
+    )
 
 
 @uploads_bp.route("/image", methods=["POST"])
 @jwt_required()
 def upload_image():
+
     if "file" not in request.files:
         return jsonify({"error": "No se envió ningún archivo"}), 400
 
@@ -36,19 +42,40 @@ def upload_image():
         return jsonify({"error": "Archivo vacío"}), 400
 
     if not is_allowed_file(file.filename, file.mimetype):
-        return jsonify({"error": "Solo se permiten imágenes (PNG, JPG, WEBP, GIF)"}), 400
+        return jsonify({
+            "error": "Solo se permiten imágenes (PNG, JPG, JPEG, WEBP y GIF)"
+        }), 400
 
     try:
         result = cloudinary.uploader.upload(
             file,
             folder="qrmenu",
-            resource_type="image",              # rechaza videos, PDFs, archivos raw, etc.
+            resource_type="image",
             allowed_formats=["png", "jpg", "jpeg", "webp", "gif"],
-            max_file_size=5_000_000              # ~5MB, ajusta según necesites
-        )
-    except cloudinary.exceptions.Error as e:
-        return jsonify({"error": "No se pudo procesar la imagen"}), 400
-    except Exception as e:
-        return jsonify({"error": "Error al subir la imagen"}), 500
+            max_file_size=5_000_000,
 
-    return jsonify({"url": result["secure_url"]}), 200
+            # Optimización automática
+            quality="auto",
+            fetch_format="auto"
+        )
+
+        optimized_url = cloudinary.CloudinaryImage(
+            result["public_id"]
+        ).build_url(
+            quality="auto",
+            fetch_format="auto"
+        )
+
+        return jsonify({
+            "url": optimized_url
+        }), 200
+
+    except cloudinary.exceptions.Error:
+        return jsonify({
+            "error": "No se pudo procesar la imagen"
+        }), 400
+
+    except Exception:
+        return jsonify({
+            "error": "Error al subir la imagen"
+        }), 500
