@@ -12,7 +12,10 @@ def get_menu(slug):
     # Categorías ordenadas
     categories = (
         Category.query
-        .filter_by(business_id=business.id)
+        .filter_by(
+            business_id=business.id,
+            parent_id=None
+        )
         .order_by(Category.display_order.asc())
         .all()
     )
@@ -34,7 +37,7 @@ def get_menu(slug):
             "name": cat.name,
             "emoji": cat.emoji,
             "image_url": cat.image_url,
-            "has_subcategories": len(cat.subcategories) > 0,
+            "has_subcategories": len(cat.children) > 0,
             "products": [{
                 "id": p.id,
                 "name": p.name,
