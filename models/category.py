@@ -15,6 +15,20 @@ class Category(db.Model):
         nullable=False
     )
 
+    # NUEVO
+    parent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("categories.id"),
+        nullable=True
+    )
+
+    # NUEVO
+    children = db.relationship(
+        "Category",
+        backref=db.backref("parent", remote_side=[id]),
+        lazy=True
+    )
+
     products = db.relationship(
         "Product",
         backref="category",

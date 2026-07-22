@@ -12,4 +12,5 @@ class Product(db.Model):
     available = db.Column(db.Boolean, default=True)
     display_order = db.Column(db.Integer, default=0)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
+    subcategory_id = db.Column(db.Integer, db.ForeignKey("subcategories.id"), nullable=True)
     

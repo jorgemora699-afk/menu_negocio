@@ -34,6 +34,7 @@ def get_menu(slug):
             "name": cat.name,
             "emoji": cat.emoji,
             "image_url": cat.image_url,
+            "has_subcategories": len(cat.subcategories) > 0,
             "products": [{
                 "id": p.id,
                 "name": p.name,

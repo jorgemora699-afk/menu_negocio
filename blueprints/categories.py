@@ -9,9 +9,15 @@ categories_bp = Blueprint("categories", __name__)
 @jwt_required()
 def get_categories():
     business_id = int(get_jwt_identity())
-    categories = Category.query.filter_by(
-        business_id=business_id
-    ).order_by(Category.display_order.asc()).all()
+    categories = (
+        Category.query
+        .filter_by(
+            business_id=business_id,
+            parent_id=None
+        )
+        .order_by(Category.display_order.asc())
+        .all()
+    )
     return jsonify([
         {
             "id": c.id,
@@ -41,6 +47,7 @@ def create_category():
         name=data["name"],
         image_url=data.get("image_url"),
         business_id=business_id,
+        parent_id=data.get("parent_id"),
         display_order=next_order
     )
     db.session.add(category)
@@ -56,6 +63,8 @@ def update_category(id):
     category.name = data.get("name", category.name)
     category.emoji = data.get("emoji", category.emoji)
     category.image_url = data.get("image_url", category.image_url)
+    if "parent_id" in data:
+        category.parent_id = data["parent_id"]
     db.session.commit()
     return jsonify({"id": category.id, "name": category.name, "emoji": category.emoji, "image_url": category.image_url})
 
@@ -116,3 +125,30 @@ def move_down(id):
         db.session.commit()
 
     return jsonify({"message": "ok"})
+
+
+@categories_bp.route("/<int:id>/children", methods=["GET"])
+@jwt_required()
+def get_children(id):
+    business_id = int(get_jwt_identity())
+
+    children = (
+        Category.query
+        .filter_by(
+            business_id=business_id,
+            parent_id=id
+        )
+        .order_by(Category.display_order.asc())
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": c.id,
+            "name": c.name,
+            "emoji": c.emoji,
+            "image_url": c.image_url,
+            "display_order": c.display_order
+        }
+        for c in children
+    ])
