@@ -32,7 +32,6 @@ def create_app():
         from blueprints.uploads import uploads_bp
         from blueprints.superadmin import superadmin_bp
         from blueprints.recipes import recipes_bp
-        from blueprints.subcategories import subcategories_bp
         
 
         app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -43,7 +42,6 @@ def create_app():
         app.register_blueprint(uploads_bp, url_prefix="/api/uploads")
         app.register_blueprint(superadmin_bp, url_prefix="/api/superadmin")
         app.register_blueprint(recipes_bp, url_prefix="/api/recipes")
-        app.register_blueprint(subcategories_bp,url_prefix="/api/subcategories")
         
     return app
 
