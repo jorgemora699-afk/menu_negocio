@@ -34,9 +34,17 @@ def get_categories():
 def create_category():
     business_id = int(get_jwt_identity())
     data = request.get_json()
-    last_category = Category.query.filter_by(
-        business_id=business_id
-    ).order_by(Category.display_order.desc()).first()
+    parent_id = data.get("parent_id")
+
+    last_category = (
+        Category.query
+        .filter_by(
+            business_id=business_id,
+            parent_id=parent_id
+        )
+        .order_by(Category.display_order.desc())
+        .first()
+    )
 
     next_order = (
         last_category.display_order + 1
@@ -87,11 +95,16 @@ def move_up(id):
         id=id,
         business_id=business_id
     ).first_or_404()
-
-    previous = Category.query.filter(
-        Category.business_id == business_id,
-        Category.display_order < category.display_order
-    ).order_by(Category.display_order.desc()).first()
+    previous = (
+        Category.query
+        .filter(
+            Category.business_id == business_id,
+            Category.parent_id == category.parent_id,
+            Category.display_order < category.display_order
+        )
+        .order_by(Category.display_order.desc())
+        .first()
+    )
 
     if previous:
         category.display_order, previous.display_order = (
@@ -112,10 +125,16 @@ def move_down(id):
         business_id=business_id
     ).first_or_404()
 
-    nxt = Category.query.filter(
-        Category.business_id == business_id,
-        Category.display_order > category.display_order
-    ).order_by(Category.display_order.asc()).first()
+    nxt = (
+        Category.query
+        .filter(
+            Category.business_id == business_id,
+            Category.parent_id == category.parent_id,
+            Category.display_order > category.display_order
+        )
+        .order_by(Category.display_order.asc())
+        .first()
+    )
 
     if nxt:
         category.display_order, nxt.display_order = (

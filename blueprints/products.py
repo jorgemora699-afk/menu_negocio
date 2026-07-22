@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.product import Product
 from models.category import Category
-from models.subcategory import Subcategory
 from app import db
 
 products_bp = Blueprint("products", __name__)
@@ -24,7 +23,6 @@ def get_products():
         "image_url": p.image_url,
         "available": p.available,
         "category_id": p.category_id,
-        "subcategory_id": p.subcategory_id,
         "display_order": p.display_order
     } for p in products])
 
@@ -44,13 +42,6 @@ def create_product():
         else 1
     )
 
-    subcategory_id = data.get("subcategory_id")
-
-    if subcategory_id:
-        Subcategory.query.filter_by(
-            id=subcategory_id,
-            category_id=category.id
-        ).first_or_404()
 
     product = Product(
         name=data["name"],
@@ -59,7 +50,6 @@ def create_product():
         image_url=data.get("image_url", ""),
         available=data.get("available", True),
         category_id=category.id,
-        subcategory_id=subcategory_id or None,
         display_order=next_order
     )
     db.session.add(product)
@@ -75,13 +65,6 @@ def update_product(id):
 
     new_category_id = data.get("category_id", product.category_id)
 
-    new_subcategory_id = data.get("subcategory_id")
-
-    if new_subcategory_id:
-        Subcategory.query.filter_by(
-            id=new_subcategory_id,
-            category_id=new_category_id
-        ).first_or_404()
     if new_category_id != product.category_id:
         # valida que la nueva categoría también sea del mismo negocio
         Category.query.filter_by(id=new_category_id, business_id=business_id).first_or_404()
@@ -92,7 +75,6 @@ def update_product(id):
     product.image_url = data.get("image_url", product.image_url)
     product.available = data.get("available", product.available)
     product.category_id = new_category_id
-    product.subcategory_id = new_subcategory_id or None
     db.session.commit()
     return jsonify({"id": product.id, "name": product.name})
 
