@@ -37,6 +37,7 @@ def get_menu(slug):
             "name": cat.name,
             "emoji": cat.emoji,
             "image_url": cat.image_url,
+            "parent_id": cat.parent_id,
             "has_subcategories": len(cat.children) > 0,
             "products": [{
                 "id": p.id,
@@ -97,6 +98,7 @@ def get_category(slug, category_id):
             "name": category.name,
             "emoji": category.emoji,
             "image_url": category.image_url,
+            "parent_id": category.parent_id,
             "has_subcategories": len(category.children) > 0,
             "products": [
                 {
