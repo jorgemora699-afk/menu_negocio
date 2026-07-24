@@ -82,6 +82,16 @@ def get_category(slug, category_id):
         .all()
     )
 
+    children = (
+        Category.query
+        .filter_by(
+            business_id=business.id,
+            parent_id=category.id
+        )
+        .order_by(Category.display_order.asc())
+        .all()
+    )
+
     return jsonify({
         "business": {
             "name": business.name,
@@ -100,6 +110,15 @@ def get_category(slug, category_id):
             "image_url": category.image_url,
             "parent_id": category.parent_id,
             "has_subcategories": len(category.children) > 0,
+            "children": [
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "emoji": c.emoji,
+                    "image_url": c.image_url
+                }
+                for c in children
+            ],
             "products": [
                 {
                     "id": p.id,
