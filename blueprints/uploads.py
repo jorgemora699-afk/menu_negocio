@@ -63,7 +63,8 @@ def upload_image():
             result["public_id"]
         ).build_url(
             quality="auto",
-            fetch_format="auto"
+            fetch_format="auto",
+            secure=True
         )
 
         return jsonify({
