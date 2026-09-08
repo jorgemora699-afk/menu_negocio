@@ -4,6 +4,7 @@ blueprints/horarios.py
 Endpoints relacionados con el registro de horario de empleados.
 - verificar-pin: valida el PIN compartido y emite un JWT temporal con rol 'empleado'
 - empleados: lista los empleados activos del negocio (para elegir "quién eres")
+- estado: consulta si un empleado tiene un turno abierto en este momento
 - entrada / salida: marcan el turno del empleado seleccionado
 """
 
@@ -66,6 +67,31 @@ def listar_empleados_activos():
 
     empleados = Empleado.query.filter_by(business_id=business_id, activo=True).order_by(Empleado.nombre.asc()).all()
     return jsonify([{"id": e.id, "nombre": e.nombre} for e in empleados])
+
+
+@horarios_bp.route("/estado", methods=["GET"])
+@jwt_required()
+def estado_turno():
+    business_id = _business_id_empleado()
+    if business_id is None:
+        return jsonify({"error": "No autorizado"}), 403
+
+    empleado_id = request.args.get("empleado_id")
+    empleado = Empleado.query.filter_by(id=empleado_id, business_id=business_id, activo=True).first()
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    turno = Turno.query.filter_by(empleado_id=empleado.id, hora_salida=None).first()
+
+    if not turno:
+        return jsonify({"turno_abierto": None})
+
+    return jsonify({
+        "turno_abierto": {
+            "turno_id": turno.id,
+            "hora_entrada": turno.hora_entrada.isoformat() + "Z",
+        }
+    })
 
 
 @horarios_bp.route("/entrada", methods=["POST"])

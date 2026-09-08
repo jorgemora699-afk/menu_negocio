@@ -62,7 +62,8 @@ def login():
             "id": business.id,
             "name": business.name,
             "slug": business.slug,
-            "recipes_enabled": business.recipes_enabled
+            "recipes_enabled": business.recipes_enabled,
+            "horario_enabled": business.horario_enabled
         }
     }), 200
 
