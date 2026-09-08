@@ -5,9 +5,25 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from models.empleado import Empleado
 from models.turno import Turno
-from services.salario_service import calcular_salario_empleado
+from services.salario_service import calcular_salario_empleado, calcular_horas_trabajadas
 
 empleados_bp = Blueprint("empleados", __name__)
+
+
+def _parsear_rango_fechas():
+    desde_str = request.args.get("desde")
+    hasta_str = request.args.get("hasta")
+
+    if not desde_str or not hasta_str:
+        return None, None, "Debes indicar 'desde' y 'hasta' (YYYY-MM-DD)"
+
+    try:
+        desde = datetime.strptime(desde_str, "%Y-%m-%d").date()
+        hasta = datetime.strptime(hasta_str, "%Y-%m-%d").date()
+    except ValueError:
+        return None, None, "Formato de fecha inválido, usa YYYY-MM-DD"
+
+    return desde, hasta, None
 
 
 @empleados_bp.route("/", methods=["GET"])
@@ -72,17 +88,9 @@ def calcular_salarios():
     """
     business_id = int(get_jwt_identity())
 
-    desde_str = request.args.get("desde")
-    hasta_str = request.args.get("hasta")
-
-    if not desde_str or not hasta_str:
-        return jsonify({"error": "Debes indicar 'desde' y 'hasta' (YYYY-MM-DD)"}), 400
-
-    try:
-        desde = datetime.strptime(desde_str, "%Y-%m-%d").date()
-        hasta = datetime.strptime(hasta_str, "%Y-%m-%d").date()
-    except ValueError:
-        return jsonify({"error": "Formato de fecha inválido, usa YYYY-MM-DD"}), 400
+    desde, hasta, error = _parsear_rango_fechas()
+    if error:
+        return jsonify({"error": error}), 400
 
     empleados = Empleado.query.filter_by(business_id=business_id, activo=True).order_by(Empleado.nombre.asc()).all()
 
@@ -105,3 +113,33 @@ def calcular_salarios():
         "empleados": resultados,
         "total_general": total_general,
     })
+
+
+@empleados_bp.route("/<int:id>/turnos", methods=["GET"])
+@jwt_required()
+def listar_turnos_empleado(id):
+    """
+    Detalle día por día de los turnos de un empleado en un rango de fechas,
+    incluyendo turnos abiertos (sin hora_salida aún).
+
+    Query params: ?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
+    """
+    business_id = int(get_jwt_identity())
+    empleado = Empleado.query.filter_by(id=id, business_id=business_id).first_or_404()
+
+    desde, hasta, error = _parsear_rango_fechas()
+    if error:
+        return jsonify({"error": error}), 400
+
+    turnos = Turno.query.filter(
+        Turno.empleado_id == empleado.id,
+        Turno.fecha.between(desde, hasta),
+    ).order_by(Turno.fecha.desc()).all()
+
+    return jsonify([{
+        "id": t.id,
+        "fecha": t.fecha.isoformat(),
+        "hora_entrada": (t.hora_entrada.isoformat() + "Z") if t.hora_entrada else None,
+        "hora_salida": (t.hora_salida.isoformat() + "Z") if t.hora_salida else None,
+        "horas_trabajadas": calcular_horas_trabajadas(t.hora_entrada, t.hora_salida),
+    } for t in turnos])
