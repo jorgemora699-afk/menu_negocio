@@ -18,5 +18,7 @@ class Business(db.Model):
     font_key = db.Column(db.String(20), default="editorial")
     recipes_enabled = db.Column(db.Boolean, default=False)
     recipe_pin = db.Column(db.String(4))
+    horario_enabled = db.Column(db.Boolean, default=False)
+    horario_pin = db.Column(db.String(4))
 
     categories = db.relationship("Category", backref="business", lazy=True, cascade="all, delete")

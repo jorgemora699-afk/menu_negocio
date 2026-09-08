@@ -22,6 +22,8 @@ def create_app():
         from models.product import Product
         from models.invite_code import InviteCode 
         from models.recipe import Recipe
+        from models.empleado import Empleado
+        from models.turno import Turno
         from models.models_wpp_agent import BusinessWhatsAppConfig, ConversationHistory, Order
         db.create_all()
 
@@ -33,6 +35,8 @@ def create_app():
         from blueprints.uploads import uploads_bp
         from blueprints.superadmin import superadmin_bp
         from blueprints.recipes import recipes_bp
+        from blueprints.horarios import horarios_bp
+        from blueprints.empleados import empleados_bp
         from blueprints.whatsapp_webhook import whatsapp_webhook_bp
 
         app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -44,6 +48,8 @@ def create_app():
         app.register_blueprint(superadmin_bp, url_prefix="/api/superadmin")
         app.register_blueprint(recipes_bp, url_prefix="/api/recipes")
         app.register_blueprint(whatsapp_webhook_bp, url_prefix="/api")
+        app.register_blueprint(horarios_bp, url_prefix="/api/horarios")
+        app.register_blueprint(empleados_bp, url_prefix="/api/empleados")
 
     return app
 
