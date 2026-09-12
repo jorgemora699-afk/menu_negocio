@@ -13,7 +13,7 @@ from services.salario_service import (
     hora_local_a_utc,
     tarifa_para_fecha,
 )
-from services.pdf_service import generar_pdf_salario
+from services.pdf_service import generar_pdf_salario, generar_pdf_reporte_general
 
 empleados_bp = Blueprint("empleados", __name__)
 
@@ -255,6 +255,53 @@ def generar_pdf_empleado(id):
     )
 
     nombre_archivo = f"salario_{empleado.nombre.replace(' ', '_')}_{desde.isoformat()}_{hasta.isoformat()}.pdf"
+
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=nombre_archivo,
+    )
+
+
+@empleados_bp.route("/reporte-general/pdf", methods=["GET"])
+@jwt_required()
+def generar_pdf_reporte_general_endpoint():
+    """
+    Genera un PDF resumen con el salario de todos los empleados activos
+    en un rango de fechas, más el total general a pagar.
+
+    Query params: ?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
+    """
+    business_id = int(get_jwt_identity())
+    business = Business.query.get(business_id)
+
+    desde, hasta, error = _parsear_rango_fechas()
+    if error:
+        return jsonify({"error": error}), 400
+
+    empleados = Empleado.query.filter_by(business_id=business_id, activo=True).order_by(Empleado.nombre.asc()).all()
+
+    resultados = []
+    for empleado in empleados:
+        turnos = Turno.query.filter(
+            Turno.empleado_id == empleado.id,
+            Turno.fecha.between(desde, hasta),
+            Turno.hora_salida.isnot(None),
+        ).all()
+        resultados.append(calcular_salario_empleado(empleado, turnos))
+
+    total_general = round(sum(r["total_salario"] for r in resultados), 2)
+
+    pdf_buffer = generar_pdf_reporte_general(
+        business_nombre=business.name,
+        desde=desde,
+        hasta=hasta,
+        empleados=resultados,
+        total_general=total_general,
+    )
+
+    nombre_archivo = f"reporte_nomina_{desde.isoformat()}_{hasta.isoformat()}.pdf"
 
     return send_file(
         pdf_buffer,
