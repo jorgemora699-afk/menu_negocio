@@ -8,3 +8,4 @@ gunicorn
 cloudinary
 anthropic
 requests
+reportlab
