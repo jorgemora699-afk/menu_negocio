@@ -78,11 +78,15 @@ def update_empleado(id):
 @empleados_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete_empleado(id):
+    """
+    No borra físicamente al empleado (destruiría su historial de turnos,
+    necesario para reportes de salario pasados). En su lugar, lo desactiva.
+    """
     business_id = int(get_jwt_identity())
     empleado = Empleado.query.filter_by(id=id, business_id=business_id).first_or_404()
-    db.session.delete(empleado)
+    empleado.activo = False
     db.session.commit()
-    return jsonify({"message": "Empleado eliminado"})
+    return jsonify({"message": "Empleado desactivado"})
 
 
 @empleados_bp.route("/salarios", methods=["GET"])
