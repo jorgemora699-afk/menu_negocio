@@ -109,6 +109,7 @@ def calcular_salarios():
     Query params: ?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
     """
     business_id = int(get_jwt_identity())
+    business = Business.query.get(business_id)
 
     desde, hasta, error = _parsear_rango_fechas()
     if error:
@@ -124,7 +125,11 @@ def calcular_salarios():
             Turno.hora_salida.isnot(None),
         ).all()
 
-        resumen = calcular_salario_empleado(empleado, turnos)
+        resumen = calcular_salario_empleado(
+            empleado, turnos,
+            tarifa_semana=business.tarifa_entre_semana,
+            tarifa_fin_semana=business.tarifa_fin_semana,
+        )
         resultados.append(resumen)
 
     total_general = round(sum(r["total_salario"] for r in resultados), 2)
@@ -242,7 +247,11 @@ def generar_pdf_empleado(id):
 
     for t in turnos:
         horas = calcular_horas_trabajadas(t.hora_entrada, t.hora_salida)
-        tarifa = tarifa_para_empleado_fecha(empleado, t.fecha)
+        tarifa = tarifa_para_empleado_fecha(
+            empleado, t.fecha,
+            tarifa_semana=business.tarifa_entre_semana,
+            tarifa_fin_semana=business.tarifa_fin_semana,
+        )
         subtotal = round(horas * tarifa, 2) if horas is not None else None
 
         if horas is not None:
@@ -303,7 +312,11 @@ def generar_pdf_reporte_general_endpoint():
             Turno.fecha.between(desde, hasta),
             Turno.hora_salida.isnot(None),
         ).all()
-        resultados.append(calcular_salario_empleado(empleado, turnos))
+        resultados.append(calcular_salario_empleado(
+            empleado, turnos,
+            tarifa_semana=business.tarifa_entre_semana,
+            tarifa_fin_semana=business.tarifa_fin_semana,
+        ))
 
     total_general = round(sum(r["total_salario"] for r in resultados), 2)
 
@@ -323,3 +336,46 @@ def generar_pdf_reporte_general_endpoint():
         as_attachment=True,
         download_name=nombre_archivo,
     )
+
+
+@empleados_bp.route("/tarifa-general", methods=["GET"])
+@jwt_required()
+def get_tarifa_general():
+    business_id = int(get_jwt_identity())
+    business = Business.query.get(business_id)
+    return jsonify({
+        "tarifa_entre_semana": float(business.tarifa_entre_semana),
+        "tarifa_fin_semana": float(business.tarifa_fin_semana),
+    })
+
+
+@empleados_bp.route("/tarifa-general", methods=["PUT"])
+@jwt_required()
+def update_tarifa_general():
+    business_id = int(get_jwt_identity())
+    business = Business.query.get(business_id)
+    data = request.get_json(silent=True) or {}
+
+    tarifa_semana = data.get("tarifa_entre_semana")
+    tarifa_finde = data.get("tarifa_fin_semana")
+
+    if tarifa_semana is None or tarifa_finde is None:
+        return jsonify({"error": "Debes indicar tarifa_entre_semana y tarifa_fin_semana"}), 400
+
+    try:
+        tarifa_semana = float(tarifa_semana)
+        tarifa_finde = float(tarifa_finde)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Las tarifas deben ser números"}), 400
+
+    if tarifa_semana <= 0 or tarifa_finde <= 0:
+        return jsonify({"error": "Las tarifas deben ser mayores a cero"}), 400
+
+    business.tarifa_entre_semana = tarifa_semana
+    business.tarifa_fin_semana = tarifa_finde
+    db.session.commit()
+
+    return jsonify({
+        "tarifa_entre_semana": float(business.tarifa_entre_semana),
+        "tarifa_fin_semana": float(business.tarifa_fin_semana),
+    })

@@ -20,5 +20,7 @@ class Business(db.Model):
     recipe_pin = db.Column(db.String(4))
     horario_enabled = db.Column(db.Boolean, default=False)
     horario_pin = db.Column(db.String(4))
+    tarifa_entre_semana = db.Column(db.Numeric(10, 2), default=10000)
+    tarifa_fin_semana = db.Column(db.Numeric(10, 2), default=12000)
 
     categories = db.relationship("Category", backref="business", lazy=True, cascade="all, delete")
