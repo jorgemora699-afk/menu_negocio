@@ -46,19 +46,36 @@ def calcular_horas_trabajadas(hora_entrada, hora_salida):
 
 
 def tarifa_para_fecha(fecha):
-    """Devuelve la tarifa por hora según el día de la semana (usa el día
+    """Devuelve la tarifa GLOBAL por hora según el día de la semana (usa el día
     en que empezó el turno)."""
     if fecha.weekday() in DIAS_FIN_DE_SEMANA:
         return TARIFA_FIN_DE_SEMANA
     return TARIFA_ENTRE_SEMANA
 
 
-def calcular_salario_turno(turno):
+def tarifa_para_empleado_fecha(empleado, fecha):
+    """
+    Igual que tarifa_para_fecha, pero revisa primero si el empleado tiene
+    una tarifa personalizada configurada; si no, usa la tarifa global.
+    """
+    es_fin_de_semana = fecha.weekday() in DIAS_FIN_DE_SEMANA
+
+    if es_fin_de_semana:
+        if empleado.valor_hora_fin_semana is not None:
+            return float(empleado.valor_hora_fin_semana)
+        return TARIFA_FIN_DE_SEMANA
+
+    if empleado.valor_hora_semana is not None:
+        return float(empleado.valor_hora_semana)
+    return TARIFA_ENTRE_SEMANA
+
+
+def calcular_salario_turno(turno, empleado):
     """Calcula el salario de un turno individual ya cerrado (con hora_salida)."""
     horas = calcular_horas_trabajadas(turno.hora_entrada, turno.hora_salida)
     if horas is None:
         return None
-    tarifa = tarifa_para_fecha(turno.fecha)
+    tarifa = tarifa_para_empleado_fecha(empleado, turno.fecha)
     return round(horas * tarifa, 2)
 
 
@@ -66,7 +83,7 @@ def calcular_salario_empleado(empleado, turnos):
     """
     turnos: lista de objetos Turno (ya cerrados) de ese empleado en el período.
     Devuelve un resumen con horas totales y salario total, respetando la
-    tarifa distinta de cada turno según su día.
+    tarifa (personalizada o global) de cada turno según su día.
     """
     total_horas = 0
     total_salario = 0
@@ -75,7 +92,7 @@ def calcular_salario_empleado(empleado, turnos):
         horas = calcular_horas_trabajadas(turno.hora_entrada, turno.hora_salida)
         if horas is None:
             continue
-        tarifa = tarifa_para_fecha(turno.fecha)
+        tarifa = tarifa_para_empleado_fecha(empleado, turno.fecha)
         total_horas += horas
         total_salario += horas * tarifa
 

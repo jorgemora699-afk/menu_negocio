@@ -11,7 +11,7 @@ from services.salario_service import (
     calcular_salario_empleado,
     calcular_horas_trabajadas,
     hora_local_a_utc,
-    tarifa_para_fecha,
+    tarifa_para_empleado_fecha,
 )
 from services.pdf_service import generar_pdf_salario, generar_pdf_reporte_general
 
@@ -43,6 +43,8 @@ def get_empleados():
         "id": e.id,
         "nombre": e.nombre,
         "activo": e.activo,
+        "valor_hora_semana": float(e.valor_hora_semana) if e.valor_hora_semana is not None else None,
+        "valor_hora_fin_semana": float(e.valor_hora_fin_semana) if e.valor_hora_fin_semana is not None else None,
     } for e in empleados])
 
 
@@ -56,6 +58,8 @@ def create_empleado():
         business_id=business_id,
         nombre=data["nombre"],
         activo=data.get("activo", True),
+        valor_hora_semana=data.get("valor_hora_semana") or None,
+        valor_hora_fin_semana=data.get("valor_hora_fin_semana") or None,
     )
     db.session.add(empleado)
     db.session.commit()
@@ -71,6 +75,12 @@ def update_empleado(id):
 
     empleado.nombre = data.get("nombre", empleado.nombre)
     empleado.activo = data.get("activo", empleado.activo)
+
+    if "valor_hora_semana" in data:
+        empleado.valor_hora_semana = data["valor_hora_semana"] or None
+    if "valor_hora_fin_semana" in data:
+        empleado.valor_hora_fin_semana = data["valor_hora_fin_semana"] or None
+
     db.session.commit()
     return jsonify({"id": empleado.id, "nombre": empleado.nombre})
 
@@ -232,7 +242,7 @@ def generar_pdf_empleado(id):
 
     for t in turnos:
         horas = calcular_horas_trabajadas(t.hora_entrada, t.hora_salida)
-        tarifa = tarifa_para_fecha(t.fecha)
+        tarifa = tarifa_para_empleado_fecha(empleado, t.fecha)
         subtotal = round(horas * tarifa, 2) if horas is not None else None
 
         if horas is not None:
