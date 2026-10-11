@@ -3,6 +3,7 @@ flask-sqlalchemy
 flask-cors
 flask-jwt-extended
 psycopg2-binary
+psycopg[binary]>=3.2
 python-dotenv
 gunicorn
 cloudinary
